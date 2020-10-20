@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col md-12">
+      {% if current_user.is_anonymous %}
+        <div class="alert alert-warning alert-dismissable" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="close"><span aria-hidden="true">x</span></button>
+            <span>You are a guest. All guests have access to each other's projects and tasks. Please log in or register to create personal projects with tasks</span>
+        </div>
+      {% endif %}
+      <div class="jumbotron p-3">
+        <div class="text-center">
+          <button type="button"  class="btn btn-success" data-toggle="modal" data-target="#mymodal-pr">Add New Project</button><br>
+        </div>
+      </div>
+
+    		{% for pr in proj %}
+    		<div class="jumbotron p-3">
+          <h2>{{ pr.id }} - <b>{{ pr.project_name }}</b>
+            <button type="button"  class="btn btn-danger btn-xs float-right" data-toggle="modal" data-target="#modaldelete-pr{{pr.id}}">Delete</button>
+            <button type="button"  class="btn btn-warning btn-xs float-right" data-toggle="modal" data-target="#modaledit-pr{{pr.id}}">Edit Project</button>
+    			<h2>Manage <b>Tasks </b>  <button type="button"  class="btn btn-success float-right" data-toggle="modal" data-target="#mymodal{{pr.id}}">Add New Task</button> </h2>
+      
+    			<table class="table table-hover table-dark">
+
+            <tr>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Task</th>
+                <th>Deadline</th>
+                <th>Priority</th>
+            </tr>
+
+            {% for ts in task %}
+            {% if ts.project_id == pr.id %}
+              <tr>
+                <td>{{ts.id}}</td>
+                <td>{% if ts.task_status == False %}
+                      <form class="form" action="{{ url_for('main.task_done',id=ts.id) }}" method="POST">     
+                        <input type="hidden" value="{{ ts.id }}">
+                        <button type="submit">+</button>
+                      </form>
+                    {% else %}
+                      <form class="form" action="{{ url_for('main.task_done',id=ts.id) }}" method="POST">     
+                        <input type="hidden" value="{{ ts.id }}">
+                        <button type="submit">X</button>
+                      </form> 
+                    {% endif %}
+                </td>
+                <td>{{ts.task_name}}</td>
+                <td>{{ts.date}}</td>
+                <td>{{ts.task_priority}}</td>
+                <td>
+                <button type="button"  class="btn btn-danger btn-xs float-right" data-toggle="modal" data-target="#modaldelete{{ts.id}}">Delete</button>
+                <button type="button"  class="btn btn-warning btn-xs float-right" data-toggle="modal" data-target="#modaledit{{ts.id}}">Edit</button>
+                </td>
+          	 </tr>
+
+            {% endif %}
+
+                  <!-- Modal Edit Task-->
+<div id="modaledit{{ts.id}}" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Update Information</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.update_task',id=ts.id) }}" method="POST">
+          <div class="form-group">
+            <label>Task:</label>
+            <input type="hidden"  name="id" value="{{ts.id}}">
+            <input type="hidden"  name="task_status" value="{{ts.task_status}}">
+            <input type="text" class="form-control" name="task_name" value="{{ts.task_name}}">
+          </div>
+          <div class="form-group">
+            <label>Deadline:</label>
+            <input type="date" class="form-control" name="task_date" value="{{ts.date}}">
+          </div>
+          <div class="form-group">
+            <label>Priority:</label>
+            <input type="number" class="form-control" name="task_priority" value="{{ts.task_priority}}">
+          </div>
+          <div class="form-group">
+              <button class="btn btn-primary" type="submit">Update</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+                      <!-- Modal Delete Task-->
+<div id="modaldelete{{ts.id}}" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete Task</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.delete_task') }}" method="POST">
+          <div class="form-group">
+            <label>Task: "{{ts.task_name}}"</label>
+            <input type="hidden"  name="id" value="{{ts.id}}">
+          </div>
+          <div class="form-group">
+            <button class="btn btn-danger btn-xs" type="submit">Dlete</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+                        {% endfor %}
+                		</table>
+            </div>
+
+                              <!-- Modal Add Task-->
+<div id="mymodal{{pr.id}}" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Task</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.add_task',id=pr.id) }}" method="POST">
+          <div class="form-group">
+            <label>Task:</label>
+            <input type="text" class="form-control" name="task_name" required="1">
+          </div>
+          <div class="form-group">
+            <label>Deadline:</label>
+            <input type="date" class="form-control" name="task_date" required="1">
+          </div>
+          <div class="form-group">
+            <label>Priority:</label>
+            <input type="number" class="form-control" name="task_priority" required="1">
+          </div>
+          <div class="form-group">
+            <button class="btn btn-primary" type="submit">Add Task</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+                  <!-- Modal Edit Project-->
+<div id="modaledit-pr{{pr.id}}" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Update Information</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.update_project') }}" method="POST">
+          <div class="form-group">
+            <label>Project:</label>
+            <input type="hidden"  name="id" value="{{pr.id}}">
+            <input type="text" class="form-control" name="project_name" value="{{pr.project_name}}">
+          </div>
+          <div class="form-group">
+            <button class="btn btn-primary" type="submit">Update</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+                      <!-- Modal Delete Project-->
+<div id="modaldelete-pr{{pr.id}}" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete Project</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.delete_project') }}" method="POST">
+          <div class="form-group">
+            <label>Project: "{{pr.project_name}}"</label>
+            <input type="hidden"  name="id" value="{{pr.id}}">
+          </div>
+          <div class="form-group">
+            <button class="btn btn-danger btn-xs" type="submit">Dlete</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+        {% endfor %}
+
+                  <!-- Modal Add Project-->
+<div id="mymodal-pr" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Project</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.add_project') }}" method="POST">
+          <div class="form-group">
+            <label>Project:</label>
+            <input type="text" class="form-control" name="name" required="1">
+          </div>
+          <div class="form-group">
+              <button class="btn btn-primary" type="submit">Add Project</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

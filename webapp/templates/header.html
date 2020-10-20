@@ -1,0 +1,14 @@
+<div class="jumbotron p-3">
+    <div class="well text-left">
+        <h3><a href="{{ url_for('main.index') }}">Todo List</a></h3>
+    </div>
+    <div class="well text-right">
+        {% if current_user.is_anonymous %}
+        	<a type="button"  class="btn btn-success" href="{{ url_for('auth.login') }}">Login</a>
+        	<a type="button"  class="btn btn-warning btn-xs" href="{{ url_for('auth.register') }}">Register</a>
+        {% else %}
+        	<h2>{{ current_user.username }}
+        	<a type="button"  class="btn btn-danger btn-xs" href="{{ url_for('auth.logout') }}">Logout</a></h2>
+        {% endif %} 
+    </div>
+</div>
